@@ -27,7 +27,8 @@ class StoreJobVacancyRequest extends FormRequest
             'location' => 'required|string|max:255',
             'company' => 'required|string|max:255',
             'salary' => 'nullable|numeric|min:0',
-            'logo' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
+            'logo' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'jenis_pekerjaan' => 'required|in:full_time,part_time'
         ];
     }
 
@@ -43,7 +44,9 @@ class StoreJobVacancyRequest extends FormRequest
             'company.required' => 'Nama perusahaan wajib diisi',
             'logo.image' => 'File harus berupa gambar',
             'logo.mimes' => 'Format gambar harus JPG, PNG, atau JPEG',
-            'logo.max' => 'Ukuran gambar maksimal 2MB'
+            'logo.max' => 'Ukuran gambar maksimal 2MB',
+            'jenis_pekerjaan.required' => 'Jenis pekerjaan wajib diisi',
+            'jenis_pekerjaan.in' => 'Jenis pekerjaan harus berupa full_time atau part_time'
         ];
     }
 }

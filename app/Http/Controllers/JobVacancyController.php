@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreJobVacancyRequest;
 use App\Http\Requests\UpdateJobVacancyRequest;
+use App\Imports\JobsImport;
 use App\Models\JobVacancy;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class JobVacancyController extends Controller
 {
@@ -14,7 +17,8 @@ class JobVacancyController extends Controller
     public function index()
     {
         $jobs = JobVacancy::all();
-        return view('jobs.index', compact('jobs'));
+        $isAdmin = auth()->user()->role === 'admin'; // atau sesuai dengan sistem role Anda
+        return view('jobs.index', compact('jobs', 'isAdmin'));
     }
 
     /**
@@ -55,7 +59,7 @@ class JobVacancyController extends Controller
      */
     public function show(JobVacancy $jobVacancy)
     {
-        //
+        return view('jobs.show', ['job' => $jobVacancy]);
     }
 
     /**
@@ -63,15 +67,29 @@ class JobVacancyController extends Controller
      */
     public function edit(JobVacancy $jobVacancy)
     {
-        //
+        return view('jobs.edit', ['job' => $jobVacancy]);
     }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateJobVacancyRequest $request, JobVacancy $jobVacancy)
-    {
-        //
+    public function update(
+        UpdateJobVacancyRequest $request,
+        JobVacancy $jobVacancy
+    )    {
+        $validated = $request->validated();
+
+        // Cek apakah ada upload logo baru
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $validated['logo'] = $logoPath;
+        }
+
+        $jobVacancy->update($validated);
+
+        return redirect()->route('jobs.index')
+            ->with('success', 'Lowongan kerja berhasil diperbarui.');
     }
 
     /**
@@ -79,6 +97,21 @@ class JobVacancyController extends Controller
      */
     public function destroy(JobVacancy $jobVacancy)
     {
-        //
+        $jobVacancy->delete();
+
+        return redirect()->route('jobs.index')
+            ->with('success', 'Lowongan kerja berhasil dihapus.');
     }
+
+    public function import(Request $request)
+    {
+
+        $request->validate(['file' =>
+            'required|mimes:xlsx,csv']);
+
+        Excel::import(new JobsImport(), $request->file('file'));
+
+        return back()->with('success', 'Data lowongan
+            berhasil diimport');
+        }
 }

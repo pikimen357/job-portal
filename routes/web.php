@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\JobVacancyController;
+use App\Http\Controllers\ApplicationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
@@ -60,6 +62,43 @@ Route::group([
             ->name('profile');
     });
 
-Route::resource('jobs', \App\Http\Controllers\JobVacancyController::class)
-        ->middleware('isAdmin');
+// for job_seeker
+Route::resource('jobs', JobVacancyController::class)
+    ->parameters(['jobs' => 'jobVacancy'])
+    ->middleware(['auth'])
+    ->only(['index','show']);
 
+// for admin
+Route::resource('jobs', JobVacancyController::class)
+    ->parameters(['jobs' => 'jobVacancy'])
+    ->middleware(['auth', 'isAdmin'])
+    ->except(['index','show']);
+
+
+Route::post('/jobs/{job}/apply',
+    [ApplicationController::class, 'store'])
+    ->name('apply.store')
+    ->middleware('auth');
+
+Route::get('/jobs/{job}/applicants',
+    [ApplicationController::class, 'index'])
+    ->name('applications.index')
+    ->middleware('isAdmin');
+
+Route::resource('applications',ApplicationController::class)
+    ->middleware(['auth', 'isAdmin'])
+    ->except(['index', 'show']);
+
+Route::resource('applications',ApplicationController::class)
+    ->middleware(['auth'])
+    ->only(['index', 'show']);
+
+Route::get('/applications/export',
+    [ApplicationController::class,'export'])
+    ->name('applications.export')
+    ->middleware('isAdmin');
+
+Route::post('/jobs/import',
+    [JobVacancyController::class,'import'])
+    ->name('jobs.import')
+    ->middleware('isAdmin');
