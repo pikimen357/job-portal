@@ -26,10 +26,11 @@
 
                     @if($isAdmin)
                     <div class="d-flex gap-2">
-                        <a href="{{ route('jobs.create') }}" class="btn btn-success">
-                            <i class="fas fa-plus"></i> Tambah Lowongan
-                        </a>
-                        <div class="border p-3 rounded">
+                        <button href="{{ route('jobs.create') }}" class="btn btn-success"
+                            style="height: fit-content;">
+                            <i class="fa fa-plus"></i> Tambah Lowongan
+                        </button>
+                        <div class="border p-3 rounded-50">
                             <form action="{{ route('jobs.import') }}" method="POST"
                                   enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
                                 @csrf
