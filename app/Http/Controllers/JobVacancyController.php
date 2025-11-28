@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\JobTemplateExport;
 use App\Http\Requests\StoreJobVacancyRequest;
 use App\Http\Requests\UpdateJobVacancyRequest;
 use App\Imports\JobsImport;
@@ -113,5 +114,13 @@ class JobVacancyController extends Controller
 
         return back()->with('success', 'Data lowongan
             berhasil diimport');
-        }
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(
+            new JobTemplateExport(),
+            'template-import-lowongan.xlsx'
+        );
+    }
 }

@@ -13,8 +13,20 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-           'isAdmin' => isAdmin::class,
+            'isAdmin' => isAdmin::class
         ]);
+
+        // Untuk Laravel Sanctum
+        $middleware->appendToGroup('api', [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+    })
+    ->withMiddleware(function (Middleware
+        $middleware): void {
+            $middleware->api(append: [
+                'throttle:api',
+            ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -3,8 +3,17 @@
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobVacancyController;
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use Illuminate\Http\Request;
+
+Route::get('/status', fn()=> ['status' => 'API is running']);
+
+Route::middleware('auth:sanctum')->group(function () {
+   Route::get('/me', fn(Request $r) => $r->user());
+});
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,8 +30,8 @@ Route::get('/register', [AuthController::class,
 Route::post('/register', [AuthController::class,
 'register']);
 
-Route::post('/logout', [AuthController::class,
-'logout'])->name('logout');
+//Route::post('/logout', [AuthController::class,
+//'logout'])->name('logout');
 
 Route::get('/about', [AuthController::class, 'about'])
     ->name('about');
@@ -62,6 +71,37 @@ Route::group([
             ->name('profile');
     });
 
+// ============================================
+// PENTING: Route spesifik harus di ATAS route resource!
+// ============================================
+
+// Download template - HARUS DI ATAS route resource jobs
+Route::get('/jobs/template',
+    [JobVacancyController::class, 'downloadTemplate'])
+    ->name('jobs.template')
+    ->middleware(['auth', 'isAdmin']);
+
+// Import jobs - HARUS DI ATAS route resource jobs
+Route::post('/jobs/import',
+    [JobVacancyController::class,'import'])
+    ->name('jobs.import')
+    ->middleware(['auth', 'isAdmin']);
+
+// Export applications - route spesifik
+Route::get('/applications/export',
+    [ApplicationController::class,'export'])
+    ->name('applications.export')
+    ->middleware(['auth', 'isAdmin']);
+
+Route::get('/applications/export/{job}',
+    [ApplicationController::class, 'exportByJob'])
+    ->name('applications.export.job')
+    ->middleware(['auth', 'isAdmin']);
+
+// ============================================
+// Route resource di BAWAH
+// ============================================
+
 // for job_seeker
 Route::resource('jobs', JobVacancyController::class)
     ->parameters(['jobs' => 'jobVacancy'])
@@ -74,17 +114,19 @@ Route::resource('jobs', JobVacancyController::class)
     ->middleware(['auth', 'isAdmin'])
     ->except(['index','show']);
 
-
+// Apply for job
 Route::post('/jobs/{job}/apply',
     [ApplicationController::class, 'store'])
     ->name('apply.store')
     ->middleware('auth');
 
+// View applicants for specific job
 Route::get('/jobs/{job}/applicants',
     [ApplicationController::class, 'index'])
     ->name('applications.index')
-    ->middleware('isAdmin');
+    ->middleware(['auth', 'isAdmin']);
 
+// Application resource routes
 Route::resource('applications',ApplicationController::class)
     ->middleware(['auth', 'isAdmin'])
     ->except(['index', 'show']);
@@ -93,12 +135,29 @@ Route::resource('applications',ApplicationController::class)
     ->middleware(['auth'])
     ->only(['index', 'show']);
 
-Route::get('/applications/export',
-    [ApplicationController::class,'export'])
-    ->name('applications.export')
-    ->middleware('isAdmin');
+Route::middleware(['auth'])->group(function () {
 
-Route::post('/jobs/import',
-    [JobVacancyController::class,'import'])
-    ->name('jobs.import')
-    ->middleware('isAdmin');
+    Route::post('/applications/{id}/accept', [ApplicationController::class, 'accept'])->name('applications.accept');
+    Route::post('/applications/{id}/reject', [ApplicationController::class, 'reject'])->name('applications.reject');
+});
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
+
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.readAll');
+
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
+        ->name('notifications.destroy');
+
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])
+        ->name('notifications.destroyAll');
+
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])
+        ->name('notifications.unreadCount');
+});

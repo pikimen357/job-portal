@@ -27,7 +27,7 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register (Request $request) {
+    public function register(Request $request) {
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
@@ -35,15 +35,20 @@ class AuthController extends Controller
             ]
         );
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'job_seeker',
             ]);
 
-        return redirect()->route('login')->with('success',
-                    'Registrasi berhasil! Silakan login.');
+//        return redirect()->route('login')->with('success',
+//                    'Registrasi berhasil! Silakan login.');
+
+            return response()->json([
+                'message' => 'Registrasi berhasil',
+                'user' => $user,
+            ], 201);
     }
     public function logout(){
         Auth::logout();

@@ -15,6 +15,20 @@
         .action-buttons {
             white-space: nowrap;
         }
+        .import-section {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .import-section:hover {
+            border-color: #0d6efd;
+            background: #e7f1ff;
+        }
+        .btn-group-custom {
+            gap: 8px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -26,31 +40,90 @@
 
                     @if($isAdmin)
                     <div class="d-flex gap-2">
-                        <button href="{{ route('jobs.create') }}" class="btn btn-success"
-                            style="height: fit-content;">
-                            <i class="fa fa-plus"></i> Tambah Lowongan
-                        </button>
-                        <div class="border p-3 rounded-50">
-                            <form action="{{ route('jobs.import') }}" method="POST"
-                                  enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
-                                @csrf
-                                <div class="input-group">
-                                    <input type="file" name="file" required class="form-control">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-file-import"></i> Import
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        <a href="{{ route('jobs.create') }}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Tambah Lowongan
+                        </a>
                     </div>
                     @endif
                 </div>
 
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
+                        <i class="fas fa-check-circle"></i> {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <ul class="mb-0">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                <!-- Import Section - Hanya untuk Admin -->
+                @if($isAdmin)
+                <div class="import-section mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h6 class="mb-0">
+                                <i class="fas fa-file-excel text-success"></i> Import Data
+                            </h6>
+                            <small class="text-muted">Import lowongan dari Excel</small>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <!-- Download Template Button -->
+                                <a href="{{ route('jobs.template') }}"
+                                   class="btn btn-outline-success">
+                                    <i class="fas fa-download"></i> Download Template
+                                </a>
+
+                                <!-- Import Form -->
+                                <form action="{{ route('jobs.import') }}"
+                                      method="POST"
+                                      enctype="multipart/form-data"
+                                      class="d-flex gap-2 align-items-center flex-grow-1"
+                                      id="importForm">
+                                    @csrf
+                                    <div class="input-group" style="max-width: 400px;">
+                                        <input type="file"
+                                               name="file"
+                                               required
+                                               class="form-control"
+                                               id="fileInput"
+                                               accept=".xlsx,.xls"
+                                               onchange="updateFileName(this)">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-file-import"></i> Import
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <!-- Info Button -->
+                                <button type="button"
+                                        class="btn btn-outline-info"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#importInfoModal">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted" id="selectedFileName"></small>
+                        </div>
+                    </div>
+                </div>
                 @endif
 
                 <div class="card shadow-sm">
@@ -168,9 +241,122 @@
         </div>
     </div>
 
+    <!-- Modal Info Import -->
+    <div class="modal fade" id="importInfoModal" tabindex="-1" aria-labelledby="importInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="importInfoModalLabel">
+                        <i class="fas fa-info-circle"></i> Panduan Import Data Lowongan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Tips:</strong> Download template terlebih dahulu untuk melihat format yang benar!
+                    </div>
+
+                    <h6 class="fw-bold mb-3">Langkah-langkah Import:</h6>
+                    <ol class="mb-4">
+                        <li class="mb-2">Klik tombol <span class="badge bg-success">Download Template</span> untuk mendapatkan file Excel kosong</li>
+                        <li class="mb-2">Buka file template dan isi data sesuai kolom yang tersedia</li>
+                        <li class="mb-2">Simpan file Excel Anda</li>
+                        <li class="mb-2">Klik tombol <span class="badge bg-secondary">Choose File</span> dan pilih file Excel Anda</li>
+                        <li class="mb-2">Klik tombol <span class="badge bg-primary">Import</span> untuk mengunggah data</li>
+                    </ol>
+
+                    <h6 class="fw-bold mb-3">Format Kolom Excel:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="20%">Kolom</th>
+                                    <th width="40%">Keterangan</th>
+                                    <th width="40%">Contoh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Title</strong></td>
+                                    <td>Judul lowongan pekerjaan</td>
+                                    <td class="text-muted">Software Engineer</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Description</strong></td>
+                                    <td>Deskripsi lengkap pekerjaan</td>
+                                    <td class="text-muted">Develop and maintain web applications</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Location</strong></td>
+                                    <td>Lokasi penempatan kerja</td>
+                                    <td class="text-muted">Jakarta</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Company</strong></td>
+                                    <td>Nama perusahaan</td>
+                                    <td class="text-muted">PT Tech Indonesia</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Salary</strong></td>
+                                    <td>Gaji (angka saja, tanpa titik/koma)</td>
+                                    <td class="text-muted">8000000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Perhatian:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>File harus berformat Excel (.xlsx atau .xls)</li>
+                            <li>Maksimal ukuran file 2MB</li>
+                            <li>Pastikan semua kolom wajib terisi</li>
+                            <li>Gaji harus berupa angka tanpa pemisah ribuan</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <a href="{{ route('jobs.template') }}" class="btn btn-success">
+                        <i class="fas fa-download"></i> Download Template
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Font Awesome untuk icons -->
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function updateFileName(input) {
+            const fileName = input.files[0]?.name;
+            const fileNameElement = document.getElementById('selectedFileName');
+            if (fileName) {
+                fileNameElement.innerHTML = `<i class="fas fa-file-excel text-success"></i> File terpilih: <strong>${fileName}</strong>`;
+            } else {
+                fileNameElement.innerHTML = '';
+            }
+        }
+
+        // Auto submit confirmation
+        document.getElementById('importForm')?.addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                e.preventDefault();
+                alert('Silakan pilih file Excel terlebih dahulu!');
+                return false;
+            }
+
+            if (!confirm('Apakah Anda yakin ingin mengimport data dari file ini?')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
 </body>
 </html>
