@@ -43,11 +43,87 @@ class JobApiController extends Controller
             });
         }
 
+        // Filter company
+        if ($req->filled('company')) {
+            $q->where('company', 'like', "%{$req->company}%");
+        }
+
+        // Filter location
+        if ($req->filled('location')) {
+            $q->where('location', 'like', "%{$req->location}%");
+        }
+
         // Pagination default 10
         $jobs = $q->orderBy('created_at', 'desc')
                   ->paginate($req->get('per_page', 10));
 
         return response()->json($jobs);
+    }
+
+    /**
+     * Public endpoint - List job tanpa autentikasi (read-only)
+     * @OA\Get(
+     *   path="/api/public/jobs",
+     *   summary="Get all job listings (public)",
+     *   tags={"Public Jobs"},
+     *   @OA\Response(
+     *     response=200,
+     *     description="List of jobs"
+     *   )
+     * )
+     */
+    public function publicIndex(Request $req)
+    {
+        $q = Job::query();
+
+        // Filter keyword
+        if ($req->filled('keyword')) {
+            $kw = $req->keyword;
+            $q->where(function ($s) use ($kw) {
+                $s->where('title', 'like', "%$kw%")
+                  ->orWhere('company', 'like', "%$kw%")
+                  ->orWhere('location', 'like', "%$kw%");
+            });
+        }
+
+        // Filter company
+        if ($req->filled('company')) {
+            $q->where('company', 'like', "%{$req->company}%");
+        }
+
+        // Filter location
+        if ($req->filled('location')) {
+            $q->where('location', 'like', "%{$req->location}%");
+        }
+
+        // Pagination default 10
+        $jobs = $q->orderBy('created_at', 'desc')
+                  ->paginate($req->get('per_page', 10));
+
+        return response()->json($jobs);
+    }
+
+    /**
+     * Public endpoint - Detail 1 job tanpa autentikasi
+     * @OA\Get(
+     *   path="/api/public/jobs/{id}",
+     *   summary="Get job detail (public)",
+     *   tags={"Public Jobs"},
+     *   @OA\Parameter(
+     *     name="id",
+     *     in="path",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Job detail"
+     *   )
+     * )
+     */
+    public function publicShow(Job $job)
+    {
+        return response()->json($job);
     }
 
     /**

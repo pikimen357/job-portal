@@ -47,4 +47,29 @@ class ApplicationApiController extends Controller
                 "application" => $app]
             , 201);
     }
+
+    /**
+     * Update application status (admin only)
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:Accepted,Rejected'
+        ]);
+
+        $application = Application::findOrFail($id);
+
+        $application->update([
+            'status' => $request->status
+        ]);
+
+        return response()->json([
+            'message' => 'Status updated',
+            'application' => $application
+        ]);
+    }
 }
