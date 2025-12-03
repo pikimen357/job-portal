@@ -32,7 +32,8 @@ class ApplicationController extends Controller
         $applications = $query->get();
         $jobs = JobVacancy::all(); // Untuk dropdown filter
 
-        return view('applications.index', compact('applications', 'jobs'));
+//        return view('applications.index', compact('applications', 'jobs'));
+       return view('jobs.applicants', compact('applications', 'jobs'));
     }
 
     /**
