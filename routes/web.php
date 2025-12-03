@@ -90,17 +90,33 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::post('/jobs/import', [JobVacancyController::class,'import'])->name('jobs.import');
 });
 
-// Resource: Job Seeker (Read Only)
-Route::resource('jobs', JobVacancyController::class)
-    ->parameters(['jobs' => 'jobVacancy'])
-    ->middleware(['auth'])
-    ->only(['index','show']);
+// PERBAIKAN UTAMA DI SINI: Ganti nama route agar tidak bentrok dengan resource
 
-// Resource: Admin (Write Only)
-Route::resource('jobs', JobVacancyController::class)
-    ->parameters(['jobs' => 'jobVacancy'])
-    ->middleware(['auth', 'isAdmin'])
-    ->except(['index','show']); // Create, Store, Edit, Update, Destroy
+//Lama: route('applications.index', $job->id)
+//Baru: route('jobs.applicants', $job->id)
+
+// BERPOTENSI ROUTE error karena sebelumnya ada route dengan nama 'jobs.index'
+Route::get('/applications/by-job/{job}', [ApplicationController::class, 'index'])
+    ->name('jobs.applicants') // <--- GANTI JADI INI
+    ->middleware(['auth', 'isAdmin']);
+
+
+Route::middleware(['auth'])->group(function () {
+
+    // READ ONLY (user)
+    Route::resource('jobs', JobVacancyController::class)
+        ->parameters(['jobs' => 'jobVacancy'])
+        ->only(['index','show']);
+
+    // WRITE ONLY (admin)
+    Route::middleware(['isAdmin'])->group(function () {
+        Route::resource('jobs', JobVacancyController::class)
+            ->parameters(['jobs' => 'jobVacancy'])
+            ->except(['index','show']);
+    });
+
+});
+
 
 
 // ============================================
@@ -111,17 +127,6 @@ Route::resource('jobs', JobVacancyController::class)
 Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store'])
     ->name('apply.store')
     ->middleware('auth');
-
-
-// PERBAIKAN UTAMA DI SINI: Ganti nama route agar tidak bentrok dengan resource
-
-//Lama: route('applications.index', $job->id)
-//Baru: route('jobs.applicants', $job->id)
-
-// BERPOTENSI ROUTE error karena sebelumnya ada route dengan nama 'jobs.index'
-Route::get('/jobs/{job}/applicants', [ApplicationController::class, 'index'])
-    ->name('jobs.applicants') // <--- GANTI JADI INI
-    ->middleware(['auth', 'isAdmin']);
 
 // Export applications
 Route::middleware(['auth', 'isAdmin'])->group(function () {

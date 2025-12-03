@@ -20,20 +20,20 @@ class ApplicationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, JobVacancy $jobVacancy = null)
     {
         $query = Application::with(['user', 'job']);
 
-        // Filter berdasarkan job_id jika ada
-        if ($request->has('job_id') && $request->job_id) {
+        if ($jobVacancy) {
+            $query->where('job_id', $jobVacancy->id);
+        } elseif ($request->has('job_id') && $request->job_id) {
             $query->where('job_id', $request->job_id);
         }
 
         $applications = $query->get();
-        $jobs = JobVacancy::all(); // Untuk dropdown filter
+        $jobs = JobVacancy::all();
 
-//        return view('applications.index', compact('applications', 'jobs'));
-       return view('jobs.applicants', compact('applications', 'jobs'));
+        return view('jobs.applicants', compact('applications', 'jobs'));
     }
 
     /**

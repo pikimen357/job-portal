@@ -1,0 +1,35 @@
+name: Deploy Laravel App
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3.0.0
+
+      - name: Setup up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Build Docker Image
+        run: docker build -t laravel-app .
+
+      - name: Deploy to Server (via SSH)
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host : ${{ secrets.SSH_HOST }}
+          username : ${{ secrets.SSH_USERNAME }}
+          key : ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/jobportal
+            git pull origin master
+            docker compose down
+            docker compose up -d --build
