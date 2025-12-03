@@ -32,7 +32,7 @@ Route::get('/register', [AuthController::class,
 Route::post('/register', [AuthController::class,
 'register']);
 
-Route::post('/api/register',[\App\Http\Controllers\Api\AuthController::class,'register']);
+Route::post('/register',[\App\Http\Controllers\Api\AuthController::class,'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/applications/{id}/status', [ApplicationApiController::class, 'updateStatus']);

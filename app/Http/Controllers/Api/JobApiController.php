@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Job;
+use App\Models\JobVacancy as Job;
 
 class JobApiController extends Controller
 {

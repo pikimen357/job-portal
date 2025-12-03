@@ -48,6 +48,46 @@
                     }
                 ]
             }
+        },
+        "/api/public/jobs": {
+            "get": {
+                "tags": [
+                    "Public Jobs"
+                ],
+                "summary": "Get all job listings (public)",
+                "description": "Public endpoint - List job tanpa autentikasi (read-only)",
+                "operationId": "57bd29ec0f32fb3b8e4d9ff73c29e9a8",
+                "responses": {
+                    "200": {
+                        "description": "List of jobs"
+                    }
+                }
+            }
+        },
+        "/api/public/jobs/{id}": {
+            "get": {
+                "tags": [
+                    "Public Jobs"
+                ],
+                "summary": "Get job detail (public)",
+                "description": "Public endpoint - Detail 1 job tanpa autentikasi",
+                "operationId": "90150990e17240fa4c448681e31da812",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job detail"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -63,6 +103,10 @@
         {
             "name": "Jobs",
             "description": "Jobs"
+        },
+        {
+            "name": "Public Jobs",
+            "description": "Public Jobs"
         }
     ]
 }
